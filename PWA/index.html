@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RADOVI</title>
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Radovi">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #4f6df5; --primary-dark: #3a52c5; --accent: #22c99d;
+    --danger: #ef4565; --bg: #f0f2f8; --surface: #ffffff;
+    --text: #1a1a2e; --text-muted: #7a7f9a; --border: #e2e5f1;
+    --radius: 14px; --shadow: 0 2px 12px rgba(79,109,245,0.10);
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    padding-bottom: 90px; -webkit-font-smoothing: antialiased;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d3561 100%);
+    padding: 20px 20px 28px; border-radius: 0 0 24px 24px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+  .header p { color: rgba(255,255,255,.55); font-size: 13px; margin-top: 2px; }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .badge-count { background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+  .tabs { display: flex; gap: 8px; padding: 16px 16px 0; }
+  .tab-btn {
+    flex: 1; padding: 10px; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    background: var(--surface); color: var(--text-muted); box-shadow: var(--shadow); transition: all .2s;
+  }
+  .tab-btn.active { background: var(--primary); color: #fff; }
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:none } }
+  .card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 18px; margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .8px; color: var(--text-muted); margin-bottom: 14px;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .full { grid-column: span 2; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+  .field input, .field select {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 16px; color: var(--text);
+    background: #fafbff; outline: none; transition: border .2s; appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--primary); background: #fff; }
+  .jm-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .jm-pill {
+    padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;
+    border: 1.5px solid var(--border); background: #fafbff;
+    cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .jm-pill.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .jm-pill input { display: none; }
+  #jmOstaloInput {
+    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 15px; margin-top: 8px; display: none; outline: none;
+  }
+  #jmOstaloInput:focus { border-color: var(--primary); }
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .1s, opacity .2s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-success { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+  .btn-group { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-group .btn { flex: 1; }
+  .search-bar { position: relative; margin-bottom: 14px; }
+  .search-bar input {
+    width: 100%; padding: 12px 14px 12px 42px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 15px; background: var(--surface); outline: none; box-shadow: var(--shadow);
+  }
+  .search-bar input:focus { border-color: var(--primary); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-muted); }
+  .record-card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 10px;
+    border-left: 4px solid var(--primary); animation: slideIn .2s ease;
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-10px) } to { opacity:1; transform:none } }
+  .record-card:nth-child(even) { border-left-color: var(--accent); }
+  .rc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .rc-num { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .rc-date { font-size: 12px; color: var(--text-muted); }
+  .rc-loc { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .rc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rc-tag { font-size: 12px; padding: 3px 10px; border-radius: 20px; background: #eef1ff; color: var(--primary); font-weight: 600; }
+  .rc-tag.green { background: #e6faf4; color: #1a9a7a; }
+  .rc-tag.orange { background: #fff4e5; color: #c07000; }
+  .rc-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+  .rc-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .rc-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .rc-edit { background: #eef1ff; color: var(--primary); }
+  .rc-del { background: #ffeef1; color: var(--danger); }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 30px;
+    font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none;
+    transition: all .3s ease; white-space: nowrap; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 200;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; padding: 6px; cursor: pointer; border: none; background: none;
+    font-size: 11px; font-weight: 600; color: var(--text-muted); transition: color .2s;
+  }
+  .nav-item.active { color: var(--primary); }
+  .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card { background: var(--surface); border-radius: 12px; padding: 14px 10px; text-align: center; box-shadow: var(--shadow); }
+  .stat-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+  .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 500; display: none; align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 500px; padding: 24px 20px max(24px, env(safe-area-inset-bottom));
+    animation: sheetUp .25s ease; max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes sheetUp { from { transform: translateY(100%) } to { transform: none } }
+  .modal-handle { width: 40px; height: 5px; background: var(--border); border-radius: 3px; margin: 0 auto 18px; }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; }
+  .install-banner {
+    position: fixed; bottom: 80px; left: 16px; right: 16px;
+    background: linear-gradient(135deg, #1a1a2e, #2d3561); color: #fff;
+    padding: 16px 18px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    z-index: 300; display: none; align-items: center; justify-content: space-between;
+  }
+  .install-banner.show { display: flex; }
+  .install-text { font-size: 14px; font-weight: 600; }
+  .install-btn {
+    background: var(--accent); color: #fff; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .install-close { background: none; border: none; color: rgba(255,255,255,.5); font-size: 20px; cursor: pointer; margin-left: 10px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div><h1>🔧 RADOVI</h1><p>Evidencija radova i usluga</p></div>
+    <div class="badge-count" id="headerCount">0</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('forma')">➕ Novi</button>
+  <button class="tab-btn" onclick="switchTab('popis')">📋 Popis</button>
+</div>
+
+<!-- ══════════ NOVI RAD ══════════ -->
+<div class="section active" id="sec-forma">
+  <div class="card">
+    <div class="card-title">📅 Datum i lokacija</div>
+    <div class="form-grid">
+      <div class="field"><label>Datum *</label><input type="date" id="c1" required></div>
+      <div class="field"><label>Lokacija 1 *</label><input type="text" id="c2" placeholder="Naziv lokacije" required></div>
+      <div class="field full"><label>Lokacija 2</label><input type="text" id="c3" placeholder="Dodatna lokacija (opcionalno)"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔨 Usluga, vozilo i količina</div>
+    <div class="form-grid">
+      <div class="field"><label>Usluga</label><input type="text" id="c4" list="usluge" placeholder="Npr. betoniranje"><datalist id="usluge"></datalist></div>
+      <div class="field"><label>Količina</label><input type="number" step="any" id="c6" min="0" placeholder="0"></div>
+      <div class="field"><label>Vozilo</label><input type="text" id="c7" list="vozila" placeholder="Npr. kamion"><datalist id="vozila"></datalist></div>
+      <div class="field"><label>Kilometri</label><input type="number" step="any" id="c8" min="0" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📏 Jedinica mjere</div>
+    <div class="jm-wrap" id="jmWrap">
+      <label class="jm-pill"><input type="radio" name="jm" value="kom">kom</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="sat">sat</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="dan">dan</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="m2">m²</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="m3">m³</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="kg">kg</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="t">t</label>
+      <label class="jm-pill"><input type="radio" name="jm" value="L">L</label>
+      <label class="jm-pill" id="jmOstaloPill"><input type="radio" name="jm" value="ostalo">Ostalo</label>
+    </div>
+    <input type="text" id="jmOstaloInput" placeholder="Upiši jedinicu...">
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Napomena</div>
+    <div class="field full"><input type="text" id="c9" placeholder="Dodatna napomena (opcionalno)"></div>
+  </div>
+  <button class="btn btn-primary" onclick="dodaj()">➕ Spremi rad</button>
+</div>
+
+<!-- ══════════ POPIS ══════════ -->
+<div class="section" id="sec-popis">
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="statTotal">0</div><div class="stat-lbl">Ukupno</div></div>
+    <div class="stat-card"><div class="stat-val" id="statDanas">0</div><div class="stat-lbl">Danas</div></div>
+    <div class="stat-card"><div class="stat-val" id="statLoc">0</div><div class="stat-lbl">Lokacija</div></div>
+  </div>
+  <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="Pretraži radove..." oninput="render()"></div>
+  <div id="listaRadova"></div>
+</div>
+
+<!-- ══════════ MODAL UREĐIVANJE ══════════ -->
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this) zatvoriModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Uredi zapis</div>
+    <div class="form-grid">
+      <div class="field"><label>Datum</label><input type="date" id="e1"></div>
+      <div class="field"><label>Lokacija 1</label><input type="text" id="e2"></div>
+      <div class="field full"><label>Lokacija 2</label><input type="text" id="e3"></div>
+      <div class="field"><label>Usluga</label><input type="text" id="e4"></div>
+      <div class="field"><label>JM</label><input type="text" id="e5"></div>
+      <div class="field"><label>Količina</label><input type="number" step="any" id="e6"></div>
+      <div class="field"><label>Vozilo</label><input type="text" id="e7"></div>
+      <div class="field"><label>KM</label><input type="number" step="any" id="e8"></div>
+      <div class="field full"><label>Napomena</label><input type="text" id="e9"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="zatvoriModal()">Odustani</button>
+      <button class="btn btn-success" onclick="spremiUredeno()">💾 Spremi</button>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <span class="install-text">📲 Instaliraj aplikaciju na početni zaslon!</span>
+  <div style="display:flex;align-items:center;">
+    <button class="install-btn" id="installBtn">Instaliraj</button>
+    <button class="install-close" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-tab="forma" onclick="switchTab('forma')"><span class="nav-icon">➕</span>Novi</button>
+  <button class="nav-item" data-tab="popis" onclick="switchTab('popis')"><span class="nav-icon">📋</span>Popis</button>
+  <button class="nav-item" onclick="exportajCSV()"><span class="nav-icon">⬇️</span>Izvoz</button>
+  <button class="nav-item" onclick="brisiSve()"><span class="nav-icon">🗑️</span>Obriši</button>
+</nav>
+
+<script>
+let baza = JSON.parse(localStorage.getItem('RADOVI')) || [];
+let editIdx = null;
+let deferredPrompt = null;
+
+// ── INIT ──
+document.getElementById('c1').value = new Date().toISOString().slice(0,10);
+
+// ── JM PILLS ──
+document.querySelectorAll('.jm-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.jm-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    document.getElementById('jmOstaloInput').style.display = pill.querySelector('input').value === 'ostalo' ? 'block' : 'none';
+  });
+});
+
+// ── DATALIST UPDATE (autocomplete) ──
+function updateDatalists() {
+  const usluge = new Set(baza.map(r => r.c4).filter(Boolean));
+  const vozila = new Set(baza.map(r => r.c7).filter(Boolean));
+  document.getElementById('usluge').innerHTML = [...usluge].map(u => `<option value="${u}">`).join('');
+  document.getElementById('vozila').innerHTML = [...vozila].map(v => `<option value="${v}">`).join('');
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── DODAJ ──
+function dodaj() {
+  const c1 = document.getElementById('c1').value;
+  const c2 = document.getElementById('c2').value;
+  if (!c1 || !c2) { toast('⚠️ Datum i Lokacija 1 su obavezni!'); return; }
+
+  const red = {};
+  for (let i = 1; i <= 9; i++) {
+    red['c' + i] = i === 5 ? dohvatiJM() : document.getElementById('c' + i).value.trim();
+  }
+  baza.push(red);
+  spremi();
+  document.getElementById('c1').value = new Date().toISOString().slice(0,10);
+  document.querySelectorAll('.jm-pill').forEach(p => p.classList.remove('selected'));
+  document.getElementById('jmOstaloInput').style.display = 'none';
+  document.getElementById('jmOstaloInput').value = '';
+  ['c2','c3','c4','c6','c7','c8','c9'].forEach(id => document.getElementById(id).value = '');
+  toast('✅ Rad spremljen!');
+  switchTab('popis');
+}
+
+function dohvatiJM() {
+  const r = document.querySelector('input[name="jm"]:checked');
+  if (!r) return '';
+  return r.value === 'ostalo' ? document.getElementById('jmOstaloInput').value.trim() : r.value;
+}
+
+// ── SPREMI ──
+function spremi() {
+  localStorage.setItem('RADOVI', JSON.stringify(baza));
+  azurirajBrojace(); updateDatalists();
+}
+
+// ── RENDER ──
+function render() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const lista = document.getElementById('listaRadova');
+  lista.innerHTML = '';
+  const filtrirano = baza.map((r, idx) => ({...r, _idx: idx}))
+    .filter(r => !q || Object.values(r).some(v => String(v).toLowerCase().includes(q)));
+  document.getElementById('statTotal').textContent = baza.length;
+  const danas = new Date().toISOString().slice(0,10);
+  document.getElementById('statDanas').textContent = baza.filter(r => r.c1 === danas).length;
+  document.getElementById('statLoc').textContent = new Set(baza.map(r => r.c2)).size;
+  if (!filtrirano.length) {
+    lista.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nema zapisa</p></div>';
+    return;
+  }
+  filtrirano.slice().reverse().forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'record-card';
+    el.innerHTML = `
+      <div class="rc-header"><span class="rc-num">#${r._idx+1}</span><span class="rc-date">${r.c1}</span></div>
+      <div class="rc-loc">📍 ${r.c2}${r.c3 ? ' → '+r.c3 : ''}</div>
+      <div class="rc-tags">
+        ${r.c4 ? '<span class="rc-tag">🔨 '+r.c4+'</span>' : ''}
+        ${r.c5 ? '<span class="rc-tag green">'+r.c5+'</span>' : ''}
+        ${r.c6 ? '<span class="rc-tag orange">× '+r.c6+'</span>' : ''}
+        ${r.c7 ? '<span class="rc-tag">🚛 '+r.c7+'</span>' : ''}
+        ${r.c8 ? '<span class="rc-tag">🛣 '+r.c8+' km</span>' : ''}
+      </div>
+      ${r.c9 ? '<div class="rc-note">"'+r.c9+'"</div>' : ''}
+      <div class="rc-actions"><button class="rc-edit" onclick="otvoriUredi(${r._idx})">✏️ Uredi</button><button class="rc-del" onclick="obrisi(${r._idx})">🗑 Obriši</button></div>`;
+    lista.appendChild(el);
+  });
+}
+
+function azurirajBrojace() { document.getElementById('headerCount').textContent = baza.length; }
+
+// ── UREDI ──
+function otvoriUredi(idx) {
+  editIdx = idx;
+  const r = baza[idx];
+  for (let i = 1; i <= 9; i++) document.getElementById('e'+i).value = r['c'+i] || '';
+  document.getElementById('editModal').classList.add('open');
+}
+function zatvoriModal() { document.getElementById('editModal').classList.remove('open'); editIdx = null; }
+function spremiUredeno() {
+  if (editIdx === null) return;
+  for (let i = 1; i <= 9; i++) baza[editIdx]['c'+i] = document.getElementById('e'+i).value.trim();
+  spremi(); render(); zatvoriModal(); toast('💾 Izmjene spremljene');
+}
+
+// ── OBRISI ──
+function obrisi(idx) {
+  if (!confirm('Obrisati ovaj zapis?')) return;
+  baza.splice(idx, 1); spremi(); render(); toast('🗑 Obrisano');
+}
+function brisiSve() {
+  if (!baza.length) { toast('Nema šta obrisati'); return; }
+  if (!confirm('Obrisati SVE zapise? Ovo se ne može vratiti!')) return;
+  baza = []; spremi(); render(); toast('🗑 Sve obrisano');
+}
+
+// ── CSV IZVOZ ──
+function exportajCSV() {
+  if (!baza.length) { toast('Nema podataka'); return; }
+  const header = 'Datum,Lok1,Lok2,Usluga,JM,Kolicina,Vozilo,KM,Napomena';
+  const rows = baza.map(r => [r.c1,r.c2,r.c3,r.c4,r.c5,r.c6,r.c7,r.c8,r.c9]
+    .map(v => '"'+String(v||'').replace(/"/g,'""')+'"').join(','));
+  const blob = new Blob(['\uFEFF'+[header,...rows].join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'radovi_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  toast('⬇️ CSV preuzet');
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='forma')||(i===1&&tab==='popis')));
+  document.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  if (tab === 'popis') render();
+}
+
+// ═══════════════════════════════════════════
+//  PWA — SERVICE WORKER
+// ═══════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(reg => console.log('✅ Service Worker registriran'))
+    .catch(err => console.log('❌ SW greška:', err));
+}
+
+// ═══════════════════════════════════════════
+//  PWA — INSTALL PROMPT
+// ═══════════════════════════════════════════
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+
+document.getElementById('installBtn').addEventListener('click', () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') toast('✅ Aplikacija instalirana!');
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+});
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+azurirajBrojace(); updateDatalists();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+radovi-app/
+├── index.html          ← glavna aplikacija (kod ispod)
+├── manifest.json       ← PWA manifest
+├── sw.js               ← service worker (offline)
+├── icon-512.png        ← tvoja ikonica (promjeni veličinu na 512×512)
+└── icon-192.png        ← ista slika smanjena na 192×192
